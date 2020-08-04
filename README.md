@@ -23,8 +23,7 @@ GET /api/apps/
 ```
 Response:
 
-```{
-    "results": [
+```"results": [
         {
             "title": "TikTok - Make Your Day",
             "appId": "com.zhiliaoapp.musically",
@@ -68,7 +67,6 @@ Response:
             "reviews": "http://mercipro-scraper.herokuapp.com/api/apps/us.zoom.videomeetings/reviews"
         }
      ]
- }
 ```
 Exemple: To get a list of top selling action games in CANADA with full detail here's how the request will be.
 
