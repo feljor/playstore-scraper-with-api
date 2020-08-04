@@ -5,6 +5,12 @@ PlayStore Scraper with Restful API using Node.js
 Available methods:
 - [getApps](#getapps): Retrieve a list of applications from one of the collections at Google Play.
 - [getAppDetail](#getappdetail): Retrieves the full detail of an application.
+- [search](#search): Retrieves a list of apps that results of searching by the given term.
+- [searchSuggestion](#searchsuggestion): Given a string returns up to five suggestion to complete a search query term.
+- [getReviews](#getreviews): Retrieves a page of reviews for a specific application.
+- [getSimilarApps](#getsimilarapps): Returns a list of similar apps to the one specified.
+- [developer](#developer): Returns the list of applications by the given developer name.
+- [permissions](#permissions): Returns the list of permissions an app has access to.
 
 ### getApps
 Retrieve a list of applications from one of the collections at Google Play. Options:
@@ -168,39 +174,399 @@ Get an app detail in swahili
 ```http
 GET /api/apps/fr.hdss/?lang=sw
 ```
+### search
+Retrieves a list of apps that results of searching by the given term. Options:
 
-Get app required permissions with full descriptions
+* `term`: the term to search by.
+* `num` (optional, defaults to 20, max is 250): the amount of apps to retrieve.
+* `lang` (optional, defaults to `'en'`): the two letter language code used to retrieve the applications.
+* `country` (optional, defaults to `'us'`): the two letter country code used to retrieve the applications.
+* `fullDetail` (optional, defaults to `false`): if `true`, an extra request will be made for every resulting app to fetch its full detail.
+* `price` (optional, defaults to `all`): allows to control if the results apps are free, paid or both.
+    * `all`: Free and paid
+    * `free`: Free apps only
+    * `paid`: Paid apps only
+
+Request:
 
 ```http
-GET /api/apps/fr.hdss/permissions/
+GET /api/apps/?q=facebook
 ```
 
-Get similar apps
+Response:
+```
+{
+    "results": [
+        {
+            "title": "Facebook",
+            "appId": "com.facebook.katana",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/com.facebook.katana",
+            "icon": "https://lh3.googleusercontent.com/ccWDU4A7fX1R24v-vvT480ySh26AYp97g1VrIB_FIdjRcuQB2JP2WdY7h_wVVAeSpg",
+            "developer": {
+                "devId": "Facebook",
+                "url": "http://mercipro-scraper.herokuapp.com/api/developers/Facebook"
+            },
+            "developerId": "Facebook",
+            "priceText": "FREE",
+            "price": 0,
+            "free": true,
+            "summary": "Find friends, watch live videos, play games &amp; save photos in your social network",
+            "scoreText": "4.2",
+            "score": 4.191718,
+            "playstoreUrl": "https://play.google.com/store/apps/details?id=com.facebook.katana",
+            "permissions": "http://mercipro-scraper.herokuapp.com/api/apps/com.facebook.katana/permissions",
+            "similar": "http://mercipro-scraper.herokuapp.com/api/apps/com.facebook.katana/similar",
+            "reviews": "http://mercipro-scraper.herokuapp.com/api/apps/com.facebook.katana/reviews"
+        },
+        {
+            "title": "Facebook Lite",
+            "appId": "com.facebook.lite",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/com.facebook.lite",
+            "icon": "https://lh3.googleusercontent.com/6Sp9grilVISOGqi92M26BH49Tj6o_VX_gByA4u1rl8kAvqOoY9n5EzDEHcFEnGHlzg",
+            "developer": {
+                "devId": "Facebook",
+                "url": "http://mercipro-scraper.herokuapp.com/api/developers/Facebook"
+            },
+            "developerId": "Facebook",
+            "priceText": "FREE",
+            "price": 0,
+            "free": true,
+            "summary": "This version of Facebook uses less data and works in all network conditions.",
+            "scoreText": "4.1",
+            "score": 4.14035,
+            "playstoreUrl": "https://play.google.com/store/apps/details?id=com.facebook.lite",
+            "permissions": "http://mercipro-scraper.herokuapp.com/api/apps/com.facebook.lite/permissions",
+            "similar": "http://mercipro-scraper.herokuapp.com/api/apps/com.facebook.lite/similar",
+            "reviews": "http://mercipro-scraper.herokuapp.com/api/apps/com.facebook.lite/reviews"
+        }
+     ]
+ }
+```
+
+### searchSuggestion
+Given a string returns up to five suggestion to complete a search query term. Options:
+
+* `term`: the term to get suggestions for.
+* `lang` (optional, defaults to `'en'`): the two letter language code used to retrieve the suggestions.
+* `country` (optional, defaults to `'us'`): the two letter country code used to retrieve the suggestions.
+
+Request:
+
+```http
+GET /api/apps/?suggest=face
+```
+Response:
+
+```
+{
+    "results": [
+        {
+            "term": "facebook",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/?q=facebook"
+        },
+        {
+            "term": "facebook messenger",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/?q=facebook%20messenger"
+        },
+        {
+            "term": "faceapp",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/?q=faceapp"
+        },
+        {
+            "term": "facetime",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/?q=facetime"
+        },
+        {
+            "term": "facebook lite",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/?q=facebook%20lite"
+        }
+    ]
+}
+```
+
+### getReviews
+Retrieves a page of reviews for a specific application.
+
+Note that this method returns reviews in a specific language (english by default), so you need to try different languages to get more reviews. Also, the counter displayed in the Google Play page refers to the total number of 1-5 stars ratings the application has, not the written reviews count. So if the app has 100k ratings, don't expect to get 100k reviews by using this method.
+
+You can get all reviews at once, by sending the `num` parameter (i.g. 5000), or paginated reviews (with 150 per page), by setting the `pagination` parameter to true;
+
+You`ll have to choose wich method is better for your use case.
+
+By setting `num` + `paginate`, the num parameter will be ignored and you will receive a paginated response instead.
+
+Options:
+
+* `appId`: Unique application id for Google Play. (e.g. id=com.mojang.minecraftpe maps to Minecraft: Pocket Edition game).
+* `lang` (optional, defaults to `'en'`): the two letter language code in which to fetch the reviews.
+* `country` (optional, defaults to `'us'`): the two letter country code in which to fetch the reviews.
+* `sort` (optional, defaults to `sort=NEWEST`): The way the reviews are going to be sorted. Accepted values are: `sort=NEWEST`, `sort=RATING` and `sort=HELPFULNESS`.
+* `num` (optional, defaults to `100`): Quantity of reviews to be captured.
+* `paginate` (optional, defaults to `false`): Defines if the result will be paginated
+* `nextPaginationToken` (optional, defaults to `null`): The next token to paginate
+
+Request:
+```http
+GET /api/apps/fr.hdss/reviews/
+```
+
+Response:
+
+```
+{
+    "results": {
+        "data": [
+            {
+                "id": "gp:AOqpTOEq8PEYR7VWhq84y_iMATpQP3kDiL8jr_BxEBSNtDitUDxRtwBI4oR5hrr3o6Ak_puUcJGtdIRt-NBgPGM",
+                "userName": "Ken Kai",
+                "userImage": "https://lh3.googleusercontent.com/-85bsR7M5G74/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucnxSwF5-OcS0iKTYX9hxEs6Vc2QEg/photo.jpg",
+                "date": "2020-05-29T19:13:39.133Z",
+                "score": 1,
+                "scoreText": "1",
+                "url": "https://play.google.com/store/apps/details?id=fr.hdss&reviewId=gp:AOqpTOEq8PEYR7VWhq84y_iMATpQP3kDiL8jr_BxEBSNtDitUDxRtwBI4oR5hrr3o6Ak_puUcJGtdIRt-NBgPGM",
+                "title": null,
+                "text": "Zero s'il un chiffre en bas de zero je le met=0",
+                "replyDate": null,
+                "replyText": null,
+                "version": null,
+                "thumbsUp": 0,
+                "criterias": [
+                    {
+                        "criteria": "vaf_phase1_free_movies_shows",
+                        "rating": null
+                    },
+                    {
+                        "criteria": "vaf_phase1_personalization",
+                        "rating": null
+                    },
+                    {
+                        "criteria": "vaf_phase1_movie_show_info",
+                        "rating": null
+                    }
+                ]
+            },
+            {
+                "id": "gp:AOqpTOGyrA_RqRTsuhODtFdGreWJ0curro_CqMFhUDb8U4TOTN5yanESHQPJ7fEuU-IxYlY72DDa3qcFRpQC-nU",
+                "userName": "Castel Clint",
+                "userImage": "https://lh3.googleusercontent.com/-qLbTdnTTJeI/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucmLglqWomvQ1eqpbQKO3YxPVw7K6w/photo.jpg",
+                "date": "2020-05-20T19:35:49.767Z",
+                "score": 5,
+                "scoreText": "5",
+                "url": "https://play.google.com/store/apps/details?id=fr.hdss&reviewId=gp:AOqpTOGyrA_RqRTsuhODtFdGreWJ0curro_CqMFhUDb8U4TOTN5yanESHQPJ7fEuU-IxYlY72DDa3qcFRpQC-nU",
+                "title": null,
+                "text": "Good",
+                "replyDate": null,
+                "replyText": null,
+                "version": "2.3",
+                "thumbsUp": 0,
+                "criterias": [
+                    {
+                        "criteria": "vaf_phase1_resume_watching",
+                        "rating": null
+                    },
+                    {
+                        "criteria": "vaf_never_display_content_language",
+                        "rating": null
+                    },
+                    {
+                        "criteria": "vaf_never_display_app_description",
+                        "rating": null
+                    }
+                ]
+            }
+        ],
+        "nextPaginationToken": null
+    }
+}
+```
+
+### getSimilarApps
+Returns a list of similar apps to the one specified. Options:
+
+* `appId`: the Google Play id of the application to get similar apps for.
+* `lang` (optional, defaults to `'en'`): the two letter language code used to retrieve the applications.
+* `country` (optional, defaults to `'us'`): the two letter country code used to retrieve the applications.
+* `fullDetail` (optional, defaults to `false`): if `true`, an extra request will be made for every resulting app to fetch its full detail.
+
+Request:
 
 ```http
 GET /api/apps/fr.hdss/similar/
 ```
 
-Get an app's reviews
+Response:
 
-```http
-GET /api/apps/fr.hdss/reviews/
+```
+{
+    "results": [
+        {
+            "title": "AlloCine",
+            "appId": "com.allocine.androidapp",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/com.allocine.androidapp",
+            "icon": "https://lh3.googleusercontent.com/YIYFmHAiPFFnRt690oCv_i-Sz9mClJOQ1wXt60lqmzBR1qKppxS1xLnE15WhvyZ1qfgL",
+            "developer": {
+                "devId": "AlloCiné",
+                "url": "http://mercipro-scraper.herokuapp.com/api/developers/AlloCin%C3%A9"
+            },
+            "developerId": "AlloCin%C3%A9",
+            "priceText": "FREE",
+            "price": 0,
+            "free": true,
+            "summary": "AlloCiné: Films, trailers, cinemas, TV series, showtimes, stars and news",
+            "scoreText": "4.2",
+            "score": 4.2402945,
+            "playstoreUrl": "https://play.google.com/store/apps/details?id=com.allocine.androidapp",
+            "permissions": "http://mercipro-scraper.herokuapp.com/api/apps/com.allocine.androidapp/permissions",
+            "similar": "http://mercipro-scraper.herokuapp.com/api/apps/com.allocine.androidapp/similar",
+            "reviews": "http://mercipro-scraper.herokuapp.com/api/apps/com.allocine.androidapp/reviews"
+        },
+        {
+            "title": "Cinopsys: Movie  & TV Show Manager",
+            "appId": "com.cinopsys.movieshows",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/com.cinopsys.movieshows",
+            "icon": "https://lh3.googleusercontent.com/YwB547JopLjkEDVialwXMTINvcVZ-tTAQNQBmQjxuwCnhbimfNcd03zZktlMSDx-gA",
+            "developer": {
+                "devId": "Kashish Sharma",
+                "url": "http://mercipro-scraper.herokuapp.com/api/developers/Kashish%20Sharma"
+            },
+            "developerId": "6676933009263338062",
+            "priceText": "FREE",
+            "price": 0,
+            "free": true,
+            "summary": "Simple, elegant &amp; completely free TRAKT client for Movies 🎥 &amp; Shows 📺.<br>No Ads!",
+            "scoreText": "4.2",
+            "score": 4.15,
+            "playstoreUrl": "https://play.google.com/store/apps/details?id=com.cinopsys.movieshows",
+            "permissions": "http://mercipro-scraper.herokuapp.com/api/apps/com.cinopsys.movieshows/permissions",
+            "similar": "http://mercipro-scraper.herokuapp.com/api/apps/com.cinopsys.movieshows/similar",
+            "reviews": "http://mercipro-scraper.herokuapp.com/api/apps/com.cinopsys.movieshows/reviews"
+        }
+     ]
+}
 ```
 
-Search apps
+### developer
+Returns the list of applications by the given developer name. Options:
 
-```http
-GET /api/apps/?q=hdss
-```
+* `devId`: the name of the developer.
+* `lang` (optional, defaults to `'en'`): the two letter language code in which to fetch the app list.
+* `country` (optional, defaults to `'us'`): the two letter country code used to retrieve the applications. Needed when the app is available only in some countries.
+* `num` (optional, defaults to 60): the amount of apps to retrieve.
+* `fullDetail` (optional, defaults to `false`): if `true`, an extra request will be made for every resulting app to fetch its full detail.
 
-Get search suggestions for a partial term
-
-```http
-GET /api/apps/?suggest=face
-```
-
-Get apps by developer
+Request:
 
 ```http
 GET /api/developers/MerciPro%20Inc./
+```
+
+Response:
+
+```
+{
+    "devId": "MerciPro Inc.",
+    "apps": [
+        {
+            "title": "Radio Star Bukavu FM",
+            "appId": "com.radiostar.cd",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/com.radiostar.cd",
+            "icon": "https://lh3.googleusercontent.com/_-QPLwgRb42VJV1micwnltRe7PzBMTmjMacwecZX9U7v811tWBjZi3ihczd4-AXylg",
+            "developer": {
+                "devId": "MerciPro Inc.",
+                "url": "http://mercipro-scraper.herokuapp.com/api/developers/MerciPro%20Inc."
+            },
+            "developerId": "6529673015364471915",
+            "priceText": "FREE",
+            "price": 0,
+            "free": true,
+            "summary": "All local, national and international news in a single application",
+            "scoreText": "0.0",
+            "score": 0,
+            "playstoreUrl": "https://play.google.com/store/apps/details?id=com.radiostar.cd",
+            "permissions": "http://mercipro-scraper.herokuapp.com/api/apps/com.radiostar.cd/permissions",
+            "similar": "http://mercipro-scraper.herokuapp.com/api/apps/com.radiostar.cd/similar",
+            "reviews": "http://mercipro-scraper.herokuapp.com/api/apps/com.radiostar.cd/reviews"
+        },
+        {
+            "title": "HDSS.TO - Anciens Films et Séries de 1900 - 2000",
+            "appId": "fr.hdss",
+            "url": "http://mercipro-scraper.herokuapp.com/api/apps/fr.hdss",
+            "icon": "https://lh3.googleusercontent.com/2f0W1Y3Z59_moDrQApnTiVwp2pmr37VCa2VNxfz9IheOvwCU6epqep2DdWPF36q2Dw",
+            "developer": {
+                "devId": "MerciPro Inc.",
+                "url": "http://mercipro-scraper.herokuapp.com/api/developers/MerciPro%20Inc."
+            },
+            "developerId": "6529673015364471915",
+            "priceText": "FREE",
+            "price": 0,
+            "free": true,
+            "summary": "Here is the best app to watch old movies from the 20th century",
+            "scoreText": "3.4",
+            "score": 3.38,
+            "playstoreUrl": "https://play.google.com/store/apps/details?id=fr.hdss",
+            "permissions": "http://mercipro-scraper.herokuapp.com/api/apps/fr.hdss/permissions",
+            "similar": "http://mercipro-scraper.herokuapp.com/api/apps/fr.hdss/similar",
+            "reviews": "http://mercipro-scraper.herokuapp.com/api/apps/fr.hdss/reviews"
+        }
+    ]
+}
+```
+
+### permissions
+Returns the list of permissions an app has access to.
+
+* `appId`: the Google Play id of the application to get permissions for.
+* `lang` (optional, defaults to `'en'`): the two letter language code in which to fetch the permissions.
+* `short` (optional, defaults to `false`): if `true`, the permission names will be returned instead of
+permission/description objects.
+
+Request:
+
+```http
+GET /api/apps/fr.hdss/permissions/
+```
+
+Response:
+
+```
+{
+    "results": [
+        {
+            "permission": "approximate location (network-based)",
+            "type": "Location"
+        },
+        {
+            "permission": "read phone status and identity",
+            "type": "Phone"
+        },
+        {
+            "permission": "read the contents of your USB storage",
+            "type": "Photos/Media/Files"
+        },
+        {
+            "permission": "modify or delete the contents of your USB storage",
+            "type": "Photos/Media/Files"
+        },
+        {
+            "permission": "read the contents of your USB storage",
+            "type": "Storage"
+        },
+        {
+            "permission": "take pictures and videos",
+            "type": "Camera"
+        },
+        {
+            "permission": "view Wi-Fi connections",
+            "type": "Wi-Fi connection information"
+        },
+        {
+            "permission": "read phone status and identity",
+            "type": "Device ID & call information"
+        },
+        {
+            "permission": "full network access",
+            "type": "Other"
+        }
+    ]
+}
 ```
