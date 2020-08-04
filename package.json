@@ -1,0 +1,33 @@
+{
+  "name": "playscraper",
+  "version": "1.0.0",
+  "description": "PlayStore app Scraper with Restful API",
+  "engines": {
+    "node": "12.x"
+  },
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "ejs": "^2.5.6",
+    "express": "^4.15.2",
+    "google-play-scraper": "^8.0.1"
+  },
+  "devDependencies": {
+    "got": "^11.3.0",
+    "tape": "^4.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heroku/node-js-getting-started"
+  },
+  "keywords": [
+    "playstore api",
+    "app scraper",
+    "app review scraper"
+  ],
+  "author": "Félix Maroy",
+  "license": "ISC"
+}

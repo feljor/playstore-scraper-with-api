@@ -1,0 +1,8 @@
+{
+  "name": "PlayStore Scraper with API",
+  "description": "PlayStore Scraper with Restful API using Node.js",
+  "repository": "https://github.com/feljor/playstore-scraper-with-api",
+  "logo": "https://cdn.rawgit.com/heroku/node-js-getting-started/master/public/node.svg",
+  "keywords": ["playstore api", "app scraper", "app review scraper"],
+  "image": "heroku/nodejs"
+}
